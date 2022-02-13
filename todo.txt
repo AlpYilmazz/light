@@ -1,0 +1,23 @@
+-- ECS --
+1. Impl System (then: Automatic conversion from a function)
+2. Impl Query (Iter)
+3. Register System
+4. Autowire Query (then: SystemParam) to System
+
+-- System --
+Query, Res, ResMut, Entity,  <impl> SystemParam
+fn(SystemParam...) -> () <impl> SystemParamFunction
+SystemParamFuntion <impl> IntoSystem
+SystemParamFunction --(IntoSystem)--> FunctionSystem (System)
+App <register> System [FunctionSystem] <on> Stage
+-
+SystemRunner <runs> System (FunctionSystem)
+FunctionSystem <runs> Func (FnMut) {
+    SystemParam -> SystemParamFetch -> get_param() => new SystemParam
+    Func(new SystemParam)
+}
+
+-- Query --
+Query <has> Fetch, Filter
+query.iter() -> QueryIter
+queryIter.next() -> fetch.fetch_item(), filter.matches() -> Fetch::Item
