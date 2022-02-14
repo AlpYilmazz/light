@@ -68,12 +68,14 @@ impl Components {
     }
 
     #[inline]
-    pub fn add_component<T: Component>(&mut self, typeid: TypeId) {
+    pub fn add_component<T: Component>(&mut self) -> ComponentId {
+        let typeid = TypeId::of::<T>();
         let index = self.descriptors.len();
         self.indices.entry(typeid).or_insert_with(|| {
             self.descriptors.push(ComponentDescriptor::of::<T>(ComponentId(index)));
             index
         });
+        ComponentId(index)
     }
 
     #[inline]
@@ -84,12 +86,14 @@ impl Components {
     }
 
     #[inline]
-    pub fn add_resource<T: Resource>(&mut self, typeid: TypeId) {
+    pub fn add_resource<T: Resource>(&mut self) -> ComponentId {
+        let typeid = TypeId::of::<T>();
         let index = self.descriptors.len();
         self.resource_indices.entry(typeid).or_insert_with(|| {
             self.descriptors.push(ComponentDescriptor::of::<T>(ComponentId(index)));
             index
         });
+        ComponentId(index)
     }
 
     #[inline]

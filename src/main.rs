@@ -1,8 +1,8 @@
 
-use monoprop::log;
-use monoprop::render::renderer::Renderer;
-use monoprop::render::shader::Shader;
-use monoprop::{error, warn, info, debug, trace};
+use light::log;
+use light::render::renderer::Renderer;
+use light::render::shader::Shader;
+use light::{error, warn, info, debug, trace};
 
 use glium::glutin;
 

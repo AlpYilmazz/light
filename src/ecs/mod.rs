@@ -1,5 +1,5 @@
 
-use self::storage::{resource_table::ResourceTable, table::Tables};
+use self::{storage::{resource_table::ResourceTable, table::Tables}, entity::Entities, component::{Components, ComponentId, Component}};
 
 
 pub mod error;
@@ -11,6 +11,8 @@ pub mod storage;
 
 
 pub struct World {
+    entities: Entities,
+    components: Components,
     resources: ResourceTable,
     tables: Tables,
 }
@@ -18,16 +20,22 @@ pub struct World {
 impl World {
     pub fn new() -> Self {
         World {
+            entities: Entities::new(),
+            components: Components::new(),
             resources: ResourceTable::new(),
             tables: Tables::new(),
         }
     }
 
-    pub fn get_resources<'a>(&'a self) -> &'a ResourceTable {
+    pub fn add_component<T: Component>(&mut self) -> ComponentId {
+        self.components.add_component::<T>()
+    }
+
+    pub fn get_resource_table<'a>(&'a self) -> &'a ResourceTable {
         &self.resources
     }
 
-    pub fn get_resources_mut<'a>(&'a mut self) -> &'a mut ResourceTable {
+    pub fn get_resource_table_mut<'a>(&'a mut self) -> &'a mut ResourceTable {
         &mut self.resources
     }
 

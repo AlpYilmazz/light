@@ -128,6 +128,26 @@ impl Table {
             entities: Vec::with_capacity(row_capacity),
         }
     }
+    
+    pub fn get_column(&self, component_id: &ComponentId) -> Option<&Column> {
+        self.components.get(component_id)
+    }
+
+    pub fn get_column_mut(&mut self, component_id: &ComponentId) -> Option<&mut Column> {
+        self.components.get_mut(component_id)
+    }
+
+    pub fn has_column(&self, component_id: &ComponentId) -> bool {
+        self.components.contains_key(component_id)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entities.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.entities.len()
+    }
 
     // X Add column - Component
     // X Add row - Entity
@@ -162,14 +182,6 @@ impl Table {
                 column.reserve_exact(new_capacity - column.len());
             }
         }
-    }
-
-    pub fn get_column(&self, component_id: &ComponentId) -> Option<&Column> {
-        self.components.get(component_id)
-    }
-
-    pub fn get_column_mut(&mut self, component_id: &ComponentId) -> Option<&mut Column> {
-        self.components.get_mut(component_id)
     }
 
     pub unsafe fn swap_remove_and_drop_unchecked(&mut self, row: usize) -> Option<Entity> {
