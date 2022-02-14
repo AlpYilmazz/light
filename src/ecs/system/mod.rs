@@ -2,12 +2,18 @@ use std::marker::PhantomData;
 
 use super::World;
 
+pub mod param;
+
 
 pub trait System {
     type In;
     type Out;
 
-    fn run(&mut self, world: &World, input: Self::In) -> Self::Out;
+    fn initialize(&mut self, world: &mut World);
+
+    /// # Safety
+    /// call `System::initialize` first
+    unsafe fn run(&mut self, world: &World, input: Self::In) -> Self::Out;
 }
 
 pub trait IntoSystem<In, Out, Marker> {
@@ -16,17 +22,21 @@ pub trait IntoSystem<In, Out, Marker> {
     fn system(self) -> Self::Sys;
 }
 
-pub trait SystemParamFetch<'w, 'f> {
+pub trait SystemParamState {
+    fn init(world: &mut World) -> Self;
+}
+
+pub trait SystemParamFetch<'w, 's>: SystemParamState {
     type Item: SystemParam;
-    fn get_param(world: &'w World) -> Self::Item;
+    fn get_param(state: &'s Self, world: &'w World) -> Self::Item;
 }
 
 pub trait SystemParam {
-    type Fetch: for<'w, 'f> SystemParamFetch<'w, 'f>;
+    type Fetch: for<'w, 's> SystemParamFetch<'w, 's>;
 }
 
 pub trait SystemParamFunction<In, Out, Param: SystemParam, Marker> {
-    fn run(&mut self, world: &World, input: In) -> Out;
+    fn run(&mut self, world: &World, state: &<Param as SystemParam>::Fetch, input: In) -> Out;
 }
 
 pub struct FunctionSystem<In, Out, Param, Marker, F>
@@ -35,7 +45,7 @@ where
     F: SystemParamFunction<In, Out, Param, Marker>
 {
     sfunc: F,
-    param: Option<Param>,
+    param_state: Option<<Param as SystemParam>::Fetch>,
     marker: PhantomData<fn() -> (In, Out, Marker)> // For it to own In, Out, Marker ???
     // The purpose of the generic Marker is to allow
     // having colliding trait implementations
@@ -50,10 +60,14 @@ where
     type In = In;
     type Out = Out;
 
-    fn run(&mut self, _world: &World, input: Self::In) -> Self::Out {
+    fn initialize(&mut self, world: &mut World) {
+        self.param_state = Some(<Param as SystemParam>::Fetch::init(world));
+    }
+
+    unsafe fn run(&mut self, world: &World, input: Self::In) -> Self::Out {
         println!("Hello, I am FunctionSystem");
 
-        self.sfunc.run(_world, input)
+        self.sfunc.run(world, self.param_state.as_mut().unwrap(), input)
     }
 }
 
@@ -69,7 +83,7 @@ where
     fn system(self) -> Self::Sys {
         FunctionSystem {
             sfunc: self,
-            param: None,
+            param_state: None,
             marker: PhantomData
         }
     }
@@ -86,9 +100,9 @@ where
     F: FnMut(Param) -> Out
         + FnMut(<<Param as SystemParam>::Fetch as SystemParamFetch>::Item) -> Out,
 {
-    fn run(&mut self, world: &World, _input: ()) -> Out {
+    fn run(&mut self, world: &World, state: &<Param as SystemParam>::Fetch, _input: ()) -> Out {
         let p 
-                = <<Param as SystemParam>::Fetch as SystemParamFetch>::get_param(world);
+                = <<Param as SystemParam>::Fetch as SystemParamFetch>::get_param(state, world);
         self(p)
     }
 }
@@ -98,9 +112,9 @@ where
     F: FnMut(In<Inp>, Param) -> Out
         + FnMut(In<Inp>, <<Param as SystemParam>::Fetch as SystemParamFetch>::Item) -> Out,
 {
-    fn run(&mut self, world: &World, input: Inp) -> Out {
+    fn run(&mut self, world: &World, state: &<Param as SystemParam>::Fetch, input: Inp) -> Out {
         let p 
-                = <<Param as SystemParam>::Fetch as SystemParamFetch>::get_param(world);
+                = <<Param as SystemParam>::Fetch as SystemParamFetch>::get_param(state, world);
         self(In{data: input}, p)
     }
 }
