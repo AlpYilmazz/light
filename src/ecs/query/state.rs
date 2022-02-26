@@ -15,7 +15,7 @@ impl<Fe: FetchQuery, Fi: FilterQuery> QueryState<Fe, Fi> {
             fetch_state: <Fe as FetchQuery>::State::init(world),
             filter_state: <Fi as FilterQuery>::State::init(world),
         }
-    }
+    } 
 }
 
 /// Actual SystemParam Query

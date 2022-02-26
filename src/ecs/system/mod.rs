@@ -28,7 +28,7 @@ pub trait SystemParamState {
 
 pub trait SystemParamFetch<'w, 's>: SystemParamState {
     type Item: SystemParam;
-    fn get_param(state: &'s Self, world: &'w World) -> Self::Item;
+    unsafe fn get_param(state: &'s mut Self, world: &'w World) -> Self::Item;
 }
 
 pub trait SystemParam {
@@ -36,7 +36,7 @@ pub trait SystemParam {
 }
 
 pub trait SystemParamFunction<In, Out, Param: SystemParam, Marker> {
-    fn run(&mut self, world: &World, state: &<Param as SystemParam>::Fetch, input: In) -> Out;
+    unsafe fn run(&mut self, world: &World, state: &mut <Param as SystemParam>::Fetch, input: In) -> Out;
 }
 
 pub struct FunctionSystem<In, Out, Param, Marker, F>
@@ -100,7 +100,7 @@ where
     F: FnMut(Param) -> Out
         + FnMut(<<Param as SystemParam>::Fetch as SystemParamFetch>::Item) -> Out,
 {
-    fn run(&mut self, world: &World, state: &<Param as SystemParam>::Fetch, _input: ()) -> Out {
+    unsafe fn run(&mut self, world: &World, state: &mut <Param as SystemParam>::Fetch, _input: ()) -> Out {
         let p 
                 = <<Param as SystemParam>::Fetch as SystemParamFetch>::get_param(state, world);
         self(p)
@@ -112,7 +112,7 @@ where
     F: FnMut(In<Inp>, Param) -> Out
         + FnMut(In<Inp>, <<Param as SystemParam>::Fetch as SystemParamFetch>::Item) -> Out,
 {
-    fn run(&mut self, world: &World, state: &<Param as SystemParam>::Fetch, input: Inp) -> Out {
+    unsafe fn run(&mut self, world: &World, state: &mut <Param as SystemParam>::Fetch, input: Inp) -> Out {
         let p 
                 = <<Param as SystemParam>::Fetch as SystemParamFetch>::get_param(state, world);
         self(In{data: input}, p)

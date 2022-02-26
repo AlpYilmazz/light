@@ -85,3 +85,63 @@ impl<'w, 's, T: Component> Fetch<'w, 's> for RefFetch<T> {
         &*self.table_column.as_ptr().add(row)
     }
 }
+
+
+impl<T: Component> FetchQuery for &mut T {
+    type State = RefMutFetchState<T>;
+    type Fetch = RefMutFetch<T>;
+}
+
+pub struct RefMutFetchState<T> {
+    component_id: ComponentId,
+    marker: PhantomData<T>,
+}
+
+impl<T: Component> FetchState for RefMutFetchState<T> {
+    fn init(world: &mut World) -> Self {
+        let component_id = world.add_component::<T>();
+        RefMutFetchState {
+            component_id,
+            marker: PhantomData,
+        }
+    }
+
+    fn update_access(&self, access_state: &mut AccessState) {
+        if access_state.has_any(&self.component_id) {
+            panic!("Access conflict");
+        }
+        access_state.add_write(self.component_id.clone());
+    }
+
+    fn matches_table(&self, table: &Table) -> bool {
+        table.has_column(&self.component_id)
+    }
+}
+
+pub struct RefMutFetch<T> {
+    table_column: NonNull<T>,
+}
+
+impl<'w, 's, T: Component> Fetch<'w, 's> for RefMutFetch<T> {
+    type Item = &'w mut T;
+    type State = RefMutFetchState<T>;
+
+    fn init(world: &'w World) -> Self {
+        RefMutFetch {
+            table_column: NonNull::dangling(),
+        }
+    }
+
+    unsafe fn set_table(&mut self, fetch_state: &'s Self::State, table: &'w Table) {
+        self.table_column = table.get_column(&fetch_state.component_id).unwrap()
+                                .get_ptr().cast::<T>();
+    }
+
+    /// # Safety
+    /// - `self.table_column` should not be dangling
+    /// - call `set_table` method before calling this method
+    /// - row should be valid address for `self.table_column`
+    unsafe fn fetch_item_from_table(&mut self, row: usize) -> Self::Item {
+        &mut *self.table_column.as_ptr().add(row)
+    }
+}

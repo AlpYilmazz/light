@@ -1,13 +1,17 @@
 
-use self::{storage::{resource_table::ResourceTable, table::Tables}, entity::Entities, component::{Components, ComponentId, Component}};
+use self::storage::{resource_table::ResourceTable, table::Tables};
+use self::entity::Entities;
+use self::component::{Components, ComponentId, Component, Resource};
 
 
 pub mod error;
+pub mod storage;
 pub mod entity;
 pub mod component;
 pub mod system;
 pub mod query;
-pub mod storage;
+pub mod event;
+pub mod util;
 
 
 pub struct World {
@@ -29,6 +33,26 @@ impl World {
 
     pub fn add_component<T: Component>(&mut self) -> ComponentId {
         self.components.add_component::<T>()
+    }
+
+    pub fn add_resource<T: Resource>(&mut self) -> ComponentId {
+        self.components.add_resource::<T>()
+    }
+
+    pub fn get_entities(&self) -> &Entities {
+        &self.entities
+    }
+
+    pub fn get_entities_mut(&mut self) -> &mut Entities {
+        &mut self.entities
+    }
+
+    pub fn get_components(&self) -> &Components {
+        &self.components
+    }
+
+    pub fn get_components_mut(&mut self) -> &mut Components {
+        &mut self.components
     }
 
     pub fn get_resource_table<'a>(&'a self) -> &'a ResourceTable {

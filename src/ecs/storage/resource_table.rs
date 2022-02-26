@@ -25,14 +25,18 @@ impl ResourceTable {
         self.table.add_column(descriptor);
     }
 
-    pub unsafe fn get_resource(&self, resource_id: &ComponentId) -> *const u8 {
-        self.table.get_column(resource_id).unwrap()
-                .get_unchecked(self.entity_id)
+    pub fn get_resource(&self, resource_id: &ComponentId) -> Option<*const u8> {
+        unsafe {
+            Some(self.table.get_column(resource_id)?
+                .get_unchecked(self.entity_id))
+        }
     }
 
-    pub unsafe fn get_resource_mut(&self, resource_id: &ComponentId) -> *mut u8 {
-        self.table.get_column(resource_id).unwrap()
-                .get_unchecked(self.entity_id)
+    pub fn get_resource_mut(&self, resource_id: &ComponentId) -> Option<*mut u8> {
+        unsafe {
+            Some(self.table.get_column(resource_id)?
+                .get_unchecked(self.entity_id))
+        }
     }
 
     pub unsafe fn remove_column(&mut self, resource_id: &ComponentId) {

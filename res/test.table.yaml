@@ -1,0 +1,22 @@
+components:
+    - Transform
+    - Name
+    - Health
+    - Mana
+    - Stamina
+    - Human
+    - Monster
+defaults:
+    Transform:
+        position: [0, 0, 0]
+        rotation: [0, 0, 0]
+        scale:    [1, 1, 1]
+    Name: "nameless"
+    Health: 100
+    Mana: 200
+    Stamina: 150
+    Human: true
+    Monster: false
+
+entities:
+    

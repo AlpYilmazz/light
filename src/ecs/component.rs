@@ -11,7 +11,7 @@ impl<T> Component for T where T: Send + Sync + 'static {}
 
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct ComponentId(usize);
+pub struct ComponentId(pub usize);
 impl ComponentId {
     pub fn id(&self) -> usize {
         self.0
@@ -30,13 +30,14 @@ impl ComponentDescriptor {
     #[inline]
     pub fn of<T: Component>(component_id: ComponentId) -> ComponentDescriptor {
         let id = component_id.id();
+        let id_one = id + 1;
 
         let block_size: usize = 32;
         
-        let (mut blocks, rem) = (id / block_size, id % block_size);
+        let (mut blocks, rem) = (id_one / block_size, id_one % block_size);
         blocks += (rem > 0) as usize;
         let mut bitmask = FixedBitSet::with_capacity(blocks * block_size);
-        bitmask.set(id, true);
+        bitmask.set(id_one, true);
 
         ComponentDescriptor {
             id: component_id,

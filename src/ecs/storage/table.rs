@@ -470,9 +470,9 @@ impl Tables {
         self.tables_vec.get_mut(table_id)
     }
 
-    /*pub fn new_table<'a>(&'a mut self, components: &[ComponentDescriptor]) -> &'a mut Table {
-        let component_ids: Vec<usize> = components.iter()
-                .map(|cd| cd.id)
+    pub fn new_table<'a>(&'a mut self, components: &[ComponentDescriptor]) -> &'a mut Table {
+        let component_ids: Vec<ComponentId> = components.iter()
+                .map(|cd| cd.id.clone())
                 .collect();
 
         let mut hasher = DefaultHasher::new();
@@ -482,7 +482,7 @@ impl Tables {
 
         let mut new_table = Table::new();
         for cd in components {
-            new_table.register_component(&cd);
+            new_table.add_column(&cd);
         }
 
         let index = self.tables_vec.len();
@@ -490,7 +490,7 @@ impl Tables {
         self.tables_vec.push(new_table);
 
         unsafe { self.tables_vec.get_unchecked_mut(index) }
-    }*/
+    }
 }
 
 /*pub struct EntityMut<'a> {
